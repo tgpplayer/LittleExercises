@@ -17,23 +17,6 @@ warrior = {
     "rotatory sword hit": 15,
     "explosive attack": 22
 }
-print(warrior.keys())
-def warrior_attack(opponents_life):
-    opponents_life["life"] -= warrior["basic damage attack"]
-
-def warrior_defend(self_life):
-    self_life["life"] += warrior["defense"]
-
-def warrior_use_hability(opponents_life, hability):
-    if hability == 1:
-        opponents_life["life"] -= warrior["rotatory sword hit"]
-    else:
-        opponents_life["life"] -= warrior["explosive attack"]
-
-def warrior_see_statistics():
-    for key, value in warrior.items():
-        print("Warrior's " + key + " -> " + str(value))
-
 
 killer = {
     "life": 75,
@@ -44,22 +27,6 @@ killer = {
     "flaming slice": 25
 }
 
-def killer_attack(opponents_life):
-    opponents_life["life"] -= killer["basic damage attack"]
-
-def killer_defend(self_life):
-    self_life["life"] += killer["defense"]
-
-def killer_use_hability(opponents_life, hability):
-    if hability == 1:
-        opponents_life["life"] -= killer["surprise knife attack"]
-    else:
-        opponents_life["life"] -= killer["flaming slice"]
-
-def killer_see_statistics():
-    for key, value in killer.items():
-        print("Killer's " + key + " -> " + str(value))
-
 wizard = {
     "life": 60,
     "mana": 34,
@@ -69,21 +36,75 @@ wizard = {
     "gravity aplication": 29
 }
 
-def wizard_attack(opponents_life):
-    opponents_life["life"] -= wizard["basic damage attack"]
-
-def wizard_defend(self_life):
-    self_life["life"] += wizard["defense"]
-
-def wizard_use_hability(opponents_life, hability):
-    if hability == 1:
-        opponents_life["life"] -= wizard["fire ball"]
+def attack(player_ch, AI_ch):
+    if player_turn:
+        print("Player's", player_character, "has used basic attack!")
+        AI_ch["life"] -= player_ch["basic damage attack"]
+        print("Actual IA's life =", characters[IA_character]["life"])
     else:
-        opponents_life["life"] -= wizard["gravity aplication"]
+        print("AI's", IA_character, "has used basic attack!")
+        player_ch["life"] -= AI_ch["basic damage attack"]
+        print("Actual Player's life =", characters[player_character]["life"])
+    
+def defend(player_ch, AI_ch):
+    if player_turn:
+        print("Player's ", player_character, "life has incremented temporally during this round!")
+        player_ch["life"] += player_ch["defense"]
+        print("Actual Player's life: ", player_ch["life"])
+    else:
+        print("AI's ", IA_character, "life has incremented temporally during this round!")
+        AI_ch["life"] += AI_ch["defense"]
+        print("Actual AI's life: ", AI_ch["life"])
 
-def wizard_see_statistics():
-    for key, value in wizard.items():
-        print("Wizzard's " + key + " -> " + str(value))
+def use_hability(player_ch, AI_ch, hability):
+    counter = 0
+    
+    if player_turn:
+        if hability == 1:
+            for i in player_ch.keys(): #  We need to work with exactly 1 of 2 habilites that characters have, so we use a 'for' and a counter to work  with the correct hability
+                if counter == 5:
+                    print("Player has used", i)
+                    AI_ch["life"] -= player_ch[i]
+                    print("Actual AI's life:", AI_ch["life"])
+                    break
+                counter += 1
+            
+        else:
+            for i in player_ch.keys():
+                if counter == 6:
+                    print("Player has used", i)
+                    AI_ch["life"] -= player_ch[i]
+                    print("Actual AI's life:", AI_ch["life"])
+                counter += 1
+    
+    else:
+        if hability == 1:
+            for i in AI_ch.keys():
+                if counter == 5:
+                    print("AI has used", i)
+                    player_ch["life"] -= AI_ch[i]
+                    print("Actual Player's life:", player_ch["life"])
+                    break
+                counter += 1
+            
+        else:
+            for i in player_ch.keys():
+                if counter == 6:
+                    print("AI has used", i)
+                    player_ch["life"] -= AI_ch[i]
+                    print("Actual Player's life:", player_ch["life"])
+                counter += 1
+
+def see_statistics(player_ch):
+    if player_ch == warrior:
+        for key, value in player_ch.items():
+            print("Warrior's", key, "->", value)
+    elif player_ch == killer:
+        for key, value in player_ch.items():
+            print("Killer's", key, "->", value)
+    else:
+        for key, value in player_ch.items():
+            print("Wizard's", key, "->", value)
 
 # Characters tuple
 characters = {
@@ -92,42 +113,51 @@ characters = {
     "Wizard": wizard
 }
 
-def player_time():
-    print("Your turn.\nAttack (attcak), defend (defend), use hability (1/2) or see actual statistics (ss)...")
-    player_battle_choice = input()
+def turns(turn):
+    battle_choice = None
+    if turn:
+        print("Your turn.\nAttack (attack), defend (defend), use hability (1/2) or see actual statistics (ss)...")
+        battle_choice = input()
+    else:
+        print("AI's turn.")
+        options = ["attack", "defend", "1", "2"]
+        battle_choice = options[random.randint(0, 3)]
+        print(battle_choice)
 
     # Different habilities are going to be used depending on the character chosen
-    if player_character == "Warrior":
-        if player_battle_choice == "attack":
-            print("Player's warrior has used basic attack!")
-            warrior_attack(characters[IA_character]) # Deduct life to oponent's life
-            print("Actual IA's", IA_character, "'s life =", characters[IA_character]["life"])
-
-        elif player_battle_choice == "defend":
-            warrior_defend(warrior["life"])
-        elif player_battle_choice == "ss":
-            warrior_see_statistics()
-        elif player_battle_choice == "1":
-            warrior_use_hability(characters[IA_character]["life"], 1)
-        elif player_battle_choice == "2":
-            warrior_use_hability(characters[IA_character]["life"], 2)
-        else:
-            print("Option not valid. Choose a correct one.")
+    if battle_choice == "attack":
+        attack(characters[player_character], characters[IA_character])
+    elif battle_choice == "defend":
+        defend(characters[player_character], characters[IA_character])
+    elif battle_choice == "ss":
+        see_statistics(characters[player_character])
+    elif battle_choice == "1":
+        use_hability(characters[player_character], characters[IA_character], 1)
+    elif battle_choice == "2":
+        use_hability(characters[player_character], characters[IA_character], 2)
+    else:
+        print("Option not valid. Choose a correct one.")
+        turns()
+    
+    
 
 def battle_flow():
     # print("BATTLE IS ABOUT TO START!")
-    r_number = random.randint(0, 1)
-
     global player_turn
     player_turn = None
+    r_number = random.randint(0, 1)
 
     if r_number == 0:
         player_turn = True
     else:
         player_turn = False
-    player_turn = True # Borrar esto cuando sea necesario
-    if player_turn:
-        player_time()
+    #player_turn = True # Borrar esto cuando sea necesario
+    while True:
+        turns(player_turn)
+        if player_turn:
+            player_turn = False
+        else:
+            player_turn = True
 
 def initial_action():
     print("Characters to be chosen: Warrior (w), Killer (k), Wizard(z). Choose character or see statistics (ss)...")
@@ -156,19 +186,14 @@ def initial_action():
         if initial_player_action == "ss":
             print("From which character?")
             statistics_option = input()
-            if statistics_option == "w":
-                warrior_see_statistics()
-            elif statistics_option == "k":
-                killer_see_statistics()
-            else:
-                wizard_see_statistics()
+            see_statistics(characters[options[statistics_option]]) # Use 2 dictionaries in order to get to the statistics
             initial_action()
         else:
             # Player character
             global player_character
             player_character = options[initial_player_action]
 
-            # Fo IA character, we store the keys of characters in a list for later pick a random one (a character)
+            # For IA character, we store the keys of characters in a list for later pick a random one (a character) and assign the character to the AI
             character_names = []
             for i in characters.keys():
                 character_names.append(i)
