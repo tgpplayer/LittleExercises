@@ -38,55 +38,49 @@ def attack(player_ch, AI_ch):
         player_ch["life"] -= AI_ch["basic damage attack"]
         print("Actual Player's life =", characters[player_character]["life"])
     
+global player_defending
+global AI_defending
+player_defending = False
+AI_defending = False
 def defend(player_ch, AI_ch):
     if player_turn:
         print("Player's ", player_character, "life has incremented temporally during this round!")
         player_ch["life"] += player_ch["defense"]
         print("Actual Player's life: ", player_ch["life"])
+        player_defending = True
     else:
         print("AI's ", IA_character, "life has incremented temporally during this round!")
         AI_ch["life"] += AI_ch["defense"]
         print("Actual AI's life: ", AI_ch["life"])
+        AI_defending = True
 
 def use_hability(player_ch, AI_ch, hability):
-    counter = 0
+    player_keys = []
+    AI_keys = []
+    for i in player_ch.keys():
+        player_keys.append(i)
+    for i in AI_ch.keys():
+        AI_keys.append(i)
     
     if player_turn:
         if hability == 1:
-            for i in player_ch.keys(): #  We need to work with exactly 1 of 2 habilites that characters have, so we use a 'for' and a counter to work  with the correct hability
-                if counter == 4:
-                    print("Player has used", i)
-                    AI_ch["life"] -= player_ch[i]
-                    print("Actual AI's life:", AI_ch["life"])
-                    break
-                counter += 1
-            
+            print("Player has used", player_keys[4])
+            AI_ch["life"] -= player_ch[player_keys[4]]
+            print("Actual AI's life:", AI_ch["life"])
         else:
-            for i in player_ch.keys():
-                if counter == 5:
-                    print("Player has used", i)
-                    AI_ch["life"] -= player_ch[i]
-                    print("Actual AI's life:", AI_ch["life"])
-                counter += 1
-    
+            print("Player has used", player_keys[5])
+            AI_ch["life"] -= player_ch[player_keys[5]]
+            print("Actual AI's life:", AI_ch["life"])
+
     else:
         if hability == 1:
-            for i in AI_ch.keys():
-                if counter == 4:
-                    print("AI has used", i)
-                    
-                    player_ch["life"] -= AI_ch[i]
-                    print("Actual Player's life:", player_ch["life"])
-                    break
-                counter += 1
-            
+            print("AI has used", AI_keys[4])
+            player_ch["life"] -= AI_ch[AI_keys[4]]
+            print("Actual Player's life:", player_ch["life"])
         else:
-            for i in AI_ch.keys():
-                if counter == 5:
-                    print("AI has used", i)
-                    player_ch["life"] -= AI_ch[i]
-                    print("Actual Player's life:", player_ch["life"])
-                counter += 1
+            print("AI has used", AI_keys[5])
+            player_ch["life"] -= AI_ch[AI_keys[5]]
+            print("Actual Player's life:", player_ch["life"])
 
 def see_statistics(player_ch):
     for key, value in player_ch.items():
@@ -124,6 +118,7 @@ def turns(turn):
         print("Option not valid. Choose a correct one.")
         turns(turn)
 
+
 def battle_flow():
     global player_turn
     player_turn = None
@@ -134,7 +129,22 @@ def battle_flow():
     else:
         player_turn = False
 
+    number_of_turn = 1
+    counter = 0
     while True:
+        if counter % 2 == 0:
+            if player_defending:
+                player_character["life"] -= player_character["defense"]
+                print("Player defense has finished.\nActual Player's life: ", player_character["life"])
+                player_defending = False
+            if AI_defending:
+                IA_character["life"] -= IA_character["defense"]
+                print("AI defense has finished.\nActual AI's life: ", IA_character["life"])
+                AI_defending = False
+
+            print("\nTURN", number_of_turn)
+            number_of_turn += 1
+
         turns(player_turn)
         if player_turn == True:
             player_turn = False
@@ -147,40 +157,45 @@ def battle_flow():
         if characters[IA_character]["life"] <= 0:
             print("AI's life is below 0.\nPLAYER WINS!!!")
             break
+        counter += 1
 
 def initial_action():
-    print("Characters to be chosen: Warrior (w), Killer (k), Wizard(z). Choose character or see statistics (ss)...")
-    initial_player_action = input()
-
-    # A dictionary is done to relate each answer (w, k, z, ss) to its meaning
-    options = {
-        "w": "Warrior",
-        "k": "Killer",
-        "z": "Wizard",
-        "ss": "See statistics"
-    }
+    global player_character
+    print("Characters: Warrior, Killer, Wizard. Choose character or see statistics (ss)...")
+    i_action = input()
     
     # Depending of the option chosen by the player, a boolean takes a value or another
     option_is_valid = None
-    for i in options.keys():
-        if initial_player_action != i:
+    for i in characters.keys():
+        if i_action != i:
             option_is_valid = False
         else:
             option_is_valid = True
             break
+    if i_action == "ss":
+        option_is_valid = True
 
-    # If boolean is true, comtinue with question with player and the beggining of the battle, otherwise
+    # If boolean is true, continue questioning the player and start the beggining of the battle, otherwise
     # use reclusion to repeat the process until the user takes a valid choice
     if option_is_valid:
-        global player_character
-        if initial_player_action == "ss":
+        if i_action == "ss":
             print("From which character? (Warrior/Killer/Wizard)")
             player_character = input()
-            see_statistics(characters[options[player_character]]) # Use 2 dictionaries in order to get to the statistics
+            existing_ch = None
+
+            for i in characters.keys():
+                if player_character != i:
+                    existing_ch = False
+                else:
+                    existing_ch = True
+                    break
+            if existing_ch == False:
+                print("The chosen character does not exist.")
+                initial_action()
+
+            see_statistics(characters[player_character])
             initial_action()
         else:
-            player_character = options[initial_player_action]
-
             # For IA character, we store the keys of characters in a list for later pick a random one (a character) and assign the character to the AI
             character_names = []
             for i in characters.keys():
@@ -188,8 +203,9 @@ def initial_action():
             global IA_character
             IA_character = character_names[random.randint(0, 2)]
 
-            print("Chosen character: ", player_character)
+            player_character = i_action
 
+            print("Chosen character: ", player_character)
             print("IA choice: ", IA_character)
             print("BATTLE IS ABOUT TO START!")
             battle_flow()
