@@ -1,0 +1,6 @@
+perro
+gato
+caballo
+leopardo
+tortuga
+conejos
