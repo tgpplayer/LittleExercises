@@ -4,7 +4,7 @@ import random
 hosts = "containers-us-west-95.railway.app"
 users = "root"
 ports = "6640"
-passwords = "tkC2gwluqGqMls9ZOHvY"
+passwords = "nothingtodohere"
 
 mydb = mysql.connector.connect(
   host=hosts,
